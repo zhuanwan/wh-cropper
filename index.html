@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>裁剪</title>
+  </head>
+  <body>
+    <div>
+      <input type="file" id="filelInput" />
+    </div>
+    <div>
+      <div id="link">https://placekitten.com/750/430</div>
+      <button id="linkStart">开始</button>
+    </div>
+
+    <div id="container"></div>
+
+    <div style="margin: 20px 0">
+      <button id="crop-btn">crop</button>
+      <button id="crop-type-one">默认</button>
+      <button id="crop-type-two">完整显示</button>
+      <button id="crop-type-three">原图</button>
+      缩放：<input id="crop-zoom-number" type="number" step="0.1" min="0" max="100"/>
+      旋转<input id="crop-rotate-number" type="number" step="1" min="0" max="360"/>
+    </div>
+
+    <div id="result"></div>
+    <button id="download-img">下载图片</button>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
