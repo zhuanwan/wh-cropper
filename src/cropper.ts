@@ -4,13 +4,6 @@ import TEMPLATE from './template'
 import caculate from './caculate'
 
 import {
-  ACTION_ALL,
-  CLASS_HIDDEN,
-  CLASS_HIDE,
-  CLASS_INVISIBLE,
-  CLASS_MOVE,
-  DATA_ACTION,
-  EVENT_READY,
   CONTAINER_HEIGHT,
   CONTAINER_WIDTH,
   NAMESPACE,
@@ -270,7 +263,7 @@ class Cropper {
     this.pointer.startX = x
     this.pointer.startY = y
 
-    this.image.style.transform = `translate(${this.imageData.left}px, ${this.imageData.top}px) rotate(0deg) scale(${scale})`
+    this.image.style.transform = `translate(${this.imageData.left}px, ${this.imageData.top}px) rotate(${this.imageData.rotate}deg) scale(${scale})`
     this.triggerOptionsFn('change cropMove')
   }
 
@@ -351,34 +344,37 @@ class Cropper {
     } = this.cropBoxData
 
     const { left: imageLeft, top: imageTop, rotate, scale } = this.imageData
-    // 创建裁剪框canvas2
+    // 创建裁剪框canvas
     const canvas = document.createElement('canvas')
     const context = canvas.getContext('2d') as CanvasRenderingContext2D
 
-    canvas.style.border = '1px solid blue'
-    canvas.width = cropWidth / scale
-    canvas.height = cropHeight / scale
+    // canvas.style.border = '1px solid blue'
+    const width = cropWidth / scale
+    const height = cropHeight / scale
+    canvas.width = width
+    canvas.height = height
     context.fillStyle = 'transparent'
-    context.fillRect(0, 0, cropWidth, cropHeight)
+    context.fillRect(0, 0, width, height)
     context.save()
 
     let tranX = (cropLeft - imageLeft) / scale
     let tranY = (cropTop - imageTop) / scale
     context.translate(-tranX, -tranY)
     context.rotate((rotate * Math.PI) / 180)
-    context.translate(tranX, tranY)
+
     // 绘制原图在容器中显示的样子
     context.drawImage(
       this.image,
-      (cropLeft - imageLeft) / scale - tranX,
-      (cropTop - imageTop) / scale - tranY,
-      cropWidth / scale + tranX,
-      cropHeight / scale + tranY,
-      -tranX,
-      -tranY,
-      cropWidth / scale + tranX,
-      cropHeight / scale + tranY
+      0,
+      0,
+      (width + Math.abs(tranX))*2,
+      (height + Math.abs(tranY))*2,
+      0,
+      0,
+      (width + Math.abs(tranX))*2,
+      (height + Math.abs(tranY))*2
     )
+    context.restore()
     return canvas
   }
 
@@ -389,6 +385,7 @@ class Cropper {
     // 创建裁剪框canvas2
     const canvas2 = document.createElement('canvas')
     const context2 = canvas2.getContext('2d') as CanvasRenderingContext2D
+    // canvas2.style.border = '1px solid blue'
     canvas2.width = cropWidth
     canvas2.height = cropHeight
     context2.fillStyle = 'transparent'

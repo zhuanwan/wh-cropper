@@ -43,7 +43,6 @@ linkStart.onclick = function () {
       containerHeight: 350,
 
       change: () => {
-        console.log(cropper.getImageData())
         cropBtn.click()
         cropZoomBtn.value = cropper.getImageData().scale + ''
         cropRotateBtn.value = cropper.getImageData().rotate + ''
