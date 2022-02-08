@@ -1,0 +1,1 @@
+.cropper-container{overflow:hidden;position:relative;border:1px solid red;user-select:none;touch-action:none;cursor:move}.cropper-container .cropper-img{position:absolute;top:0;left:0;will-change:transform}.cropper-container .cropper-box{z-index:3;position:absolute;border:1px solid rgba(255,255,255,.5);box-sizing:border-box;box-shadow:0 0 0 9999px;color:#00000080;overflow:hidden}

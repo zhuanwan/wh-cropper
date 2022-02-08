@@ -1,7 +1,8 @@
-import { FnNamesT, OptionsT } from '../types/cropper.d'
+import { FnNamesT, OptionsT } from '../types'
 import { createImageElement, loadImage } from './utils'
 import TEMPLATE from './template'
 import caculate from './caculate'
+import './css/style.less'
 
 import {
   CONTAINER_HEIGHT,

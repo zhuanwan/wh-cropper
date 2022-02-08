@@ -1,4 +1,3 @@
-import './css/style.less'
 import Cropper from './cropper'
 
 const filelInput = document.getElementById('filelInput') as HTMLInputElement
@@ -72,11 +71,11 @@ linkStart.click()
 
 
 cropZoomBtn.onchange = function() {
-  cropper.zoomTo(this.value)
+  cropper.zoomTo((this as any).value)
 }
 
 cropRotateBtn.onchange = function() {
-  cropper.rotateTo(this.value)
+  cropper.rotateTo((this as any).value)
 }
 
 downloadImg.onclick = function() {
