@@ -8,6 +8,9 @@
 ### 用法
 
 ```js
+import Cropper from 'wh-cropper'
+import 'wh-cropper/lib/style.css'
+
 let cropper = new Cropper(image, container, {
   aspect: 6 / 4, // 裁剪比例，默认1
   containerWidth: 350, // 容器宽度，默认600
