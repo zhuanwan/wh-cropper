@@ -23,4 +23,4 @@ let cropper = new Cropper(image, container, {
 })
 ```
 ### 示例
-react示例：https://codesandbox.io/s/crop-react-demo-5v6pg
+示例：https://codesandbox.io/s/cropper-demo-ype91
