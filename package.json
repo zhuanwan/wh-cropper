@@ -1,6 +1,6 @@
 {
   "name": "wh-cropper",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "./lib/cropper.umd.js",
   "module": "./lib/cropper.es.js",
   "files": [
