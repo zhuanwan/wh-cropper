@@ -1,5 +1,9 @@
 import { FnNamesT, OptionsT } from '../types'
-import { createImageElement, loadImage } from './utils'
+import {
+  createImageElement,
+  getDistance,
+  loadImage,
+} from './utils'
 import TEMPLATE from './template'
 import caculate from './caculate'
 import './css/style.less'
@@ -12,6 +16,7 @@ import {
   EVENT_TOUCH_MOVE,
   EVENT_TOUCH_END,
   EVENT_WHEEL,
+  ACTION_MOVE,
 } from './constants'
 
 const DEFAULTS: Partial<OptionsT> = {
@@ -45,15 +50,18 @@ class Cropper {
     top: number
   }
   onCropStart!: (event: MouseEvent | TouchEvent) => void
-  pointer: {
-    startX: number
-    startY: number
-    distanchX: number
-    distanchY: number
+  pointers: {
+    startX1: number
+    startY1: number
+    pageX1: number
+    pageY1: number
+    originScale: number
+    pageX2?: number
+    pageY2?: number
   }
   startMoving: boolean = false
   onCropMove!: (event: MouseEvent | TouchEvent) => void
-  onCropUp!: () => void
+  onCropUp!: (event: MouseEvent | TouchEvent) => void
   cropBoxData!: {
     width: number
     height: number
@@ -67,6 +75,7 @@ class Cropper {
   setImageDataTypeThree: any
   wheeling: boolean
   onWheel!: (event: WheelEvent) => void
+  action: string
 
   constructor(
     element: string | File,
@@ -83,12 +92,14 @@ class Cropper {
     this.container = container
     this.ready = false
     this.wheeling = false
-    this.pointer = {
-      startX: 0,
-      startY: 0,
-      distanchX: 0,
-      distanchY: 0,
+    this.pointers = {
+      startX1: 0,
+      startY1: 0,
+      pageX1: 0,
+      pageY1: 0,
+      originScale: 1,
     }
+    this.action = ''
     this.options = {
       ...DEFAULTS,
       ...options,
@@ -212,46 +223,101 @@ class Cropper {
   }
 
   cropStart(event: MouseEvent | TouchEvent) {
-    this.startMoving = true
+    this.action = ACTION_MOVE
     if (event.type === 'mousedown') {
       const e = event as MouseEvent
-      this.pointer = {
-        startX: e.clientX,
-        startY: e.clientY,
-        distanchX: 0,
-        distanchY: 0,
+      this.pointers = {
+        startX1: e.pageX,
+        startY1: e.pageY,
+        pageX1: e.pageX,
+        pageY1: e.pageY,
+        originScale: this.imageData.scale
       }
     } else {
       const e = event as TouchEvent
-      this.pointer = {
-        startX: e.touches[0].clientX,
-        startY: e.touches[0].clientY,
-        distanchX: 0,
-        distanchY: 0,
+      this.pointers = {
+        startX1: e.touches[0].pageX,
+        startY1: e.touches[0].pageY,
+        pageX1: e.touches[0].pageX,
+        pageY1: e.touches[0].pageY,
+        originScale: this.imageData.scale
+      }
+      if (e.touches[1]) {
+        this.action = ACTION_MOVE
+        this.pointers.pageX2 = e.touches[1].pageX
+        this.pointers.pageY2 = e.touches[1].pageY
       }
     }
     this.triggerOptionsFn('cropStart')
   }
 
   cropMove(event: MouseEvent | TouchEvent) {
-    event.preventDefault()
-    if (!this.startMoving) {
+    if (!this.action) {
       return
     }
+    event.preventDefault()
 
-    let x
-    let y
+    let moveEvent = {
+      pageX: 0,
+      pageY: 0,
+    }
     if (event.type === 'mousemove') {
       const e = event as MouseEvent
-      x = e.clientX
-      y = e.clientY
+      moveEvent = {
+        pageX: e.pageX,
+        pageY: e.pageY,
+      }
     } else {
       const e = event as TouchEvent
-      x = e.touches[0].clientX
-      y = e.touches[0].clientY
+      const event1 = e.touches[0]
+      const event2 = e.touches[1]
+
+      // 如果有event2,说明是双指缩放
+      if (event2) {
+        if (!this.pointers.pageX2) {
+          this.pointers.pageX2 = event2.pageX
+        }
+        if (!this.pointers.pageY2) {
+          this.pointers.pageY2 = event2.pageY
+        }
+
+        // 双指缩放比例计算
+        var zoom =
+          getDistance(
+            {
+              x: event1.pageX,
+              y: event1.pageY,
+            },
+            {
+              x: event2.pageX,
+              y: event2.pageY,
+            }
+          ) /
+          getDistance(
+            {
+              x: this.pointers.startX1,
+              y: this.pointers.startY1,
+            },
+            {
+              x: this.pointers.pageX2,
+              y: this.pointers.pageY2,
+            }
+          )
+
+        this.zoomTo(zoom * this.pointers.originScale)
+        this.triggerOptionsFn('change cropMove')
+        return
+      }
+
+      moveEvent = {
+        pageX: event1.pageX,
+        pageY: event1.pageY,
+      }
     }
-    let distanchX = x - this.pointer.startX
-    let distanchY = y - this.pointer.startY
+
+    const pointers = this.pointers
+    let distanchX = moveEvent.pageX - (pointers.pageX1 || 0)
+    let distanchY = moveEvent.pageY - (pointers.pageY1 || 0)
 
     const { left, top, scale } = this.imageData
 
@@ -261,18 +327,26 @@ class Cropper {
       top: top + distanchY,
     }
 
-    this.pointer.startX = x
-    this.pointer.startY = y
+    pointers.pageX1 = moveEvent.pageX
+    pointers.pageY1 = moveEvent.pageY
 
     this.image.style.transform = `translate(${this.imageData.left}px, ${this.imageData.top}px) rotate(${this.imageData.rotate}deg) scale(${scale})`
     this.triggerOptionsFn('change cropMove')
   }
 
-  cropUp() {
-    if (!this.startMoving) {
+  cropUp(event: MouseEvent | TouchEvent) {
+    this.pointers = {
+      startX1: 0,
+      startY1: 0,
+      pageX1: 0,
+      pageY1: 0,
+      originScale: 1,
+    }
+    if (!this.action) {
       return
     }
-    this.startMoving = false
+    this.action = ''
+
     this.triggerOptionsFn('cropEnd')
   }
 
@@ -312,9 +386,6 @@ class Cropper {
   // 缩放到原图的多少倍
   zoomTo(r: number) {
     const { naturalHeight, naturalRatio } = this.initialImageData
-    const { width: containerWidth, height: containerHeight } =
-      this.containerData
-
     const _height = naturalHeight * r
     const _width = naturalHeight * r * naturalRatio
     this.imageData = {
@@ -322,8 +393,8 @@ class Cropper {
       width: _width,
       height: _height,
       scale: r,
-      left: (containerWidth - _width) / 2,
-      top: (containerHeight - _height) / 2,
+      left: this.imageData.left - (_width - this.imageData.width) / 2,
+      top: this.imageData.top - (_height - this.imageData.height) / 2 ,
     }
     this.setStyle()
   }
@@ -368,12 +439,12 @@ class Cropper {
       this.image,
       0,
       0,
-      (width + Math.abs(tranX))*2,
-      (height + Math.abs(tranY))*2,
+      (width + Math.abs(tranX)) * 2,
+      (height + Math.abs(tranY)) * 2,
       0,
       0,
-      (width + Math.abs(tranX))*2,
-      (height + Math.abs(tranY))*2
+      (width + Math.abs(tranX)) * 2,
+      (height + Math.abs(tranY)) * 2
     )
     context.restore()
     return canvas

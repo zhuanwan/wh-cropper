@@ -5,8 +5,12 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>裁剪</title>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/vConsole/3.6.0/vconsole.min.js"></script>
+    <script>
+      var vConsole = new VConsole()
+    </script> -->
   </head>
-  <body>
+  <body style="overflow: scroll;">
     <div>
       <input type="file" id="filelInput" />
     </div>
@@ -29,6 +33,7 @@
     <div id="result"></div>
     <button id="download-img">下载图片</button>
 
+    <div style="height:40px"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
