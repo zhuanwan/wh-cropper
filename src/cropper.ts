@@ -61,7 +61,7 @@ class Cropper {
   }
   startMoving: boolean = false
   onCropMove!: (event: MouseEvent | TouchEvent) => void
-  onCropUp!: (event: MouseEvent | TouchEvent) => void
+  onCropUp!: (event?: MouseEvent | TouchEvent) => void
   cropBoxData!: {
     width: number
     height: number
@@ -334,7 +334,7 @@ class Cropper {
     this.triggerOptionsFn('change cropMove')
   }
 
-  cropUp(event: MouseEvent | TouchEvent) {
+  cropUp() {
     this.pointers = {
       startX1: 0,
       startY1: 0,
